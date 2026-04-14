@@ -1,0 +1,18 @@
+====================================
+        Welcome to Our Service
+====================================
+
+Hello, {{name}}!
+
+We are glad to see you here 
+
+ Your details:
+--------------------------
+Name: {{name}}
+Age: {{age}}
+Email: {{email}}
+
+--------------------------
+
+ Thank you for joining us!
+Have a great day!
