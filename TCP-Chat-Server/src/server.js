@@ -1,11 +1,13 @@
 const net = require('node:net');
+const getTime = require('./utils/getTime.js');
+const allCommands = require('./utils/commands.js')
 
 const users = new Map();
-
-const getTime = () => {
-    const nowTime = new Date();
-    return nowTime.toTimeString().split(' ')[0];
-}
+const commands = new Map([
+    ["/dm", allCommands.commandDM],
+    ["/all", allCommands.commandALL],
+    ["/users", allCommands.commandUSERS]
+]);
 
 const server = net.createServer((socket) => {
     console.log(`[${getTime()}] ***System: New client connected`);
@@ -25,31 +27,31 @@ const server = net.createServer((socket) => {
             socket.username = message;
             users.set(message, socket);
 
-            socket.write(`Hello, ${socket.username}!\n`);
+            socket.write(
+                `Hello, ${socket.username}!
+
+                Choose command type:
+
+                /dm user message --> send private message
+                /all message     --> send message to everyone
+                /users           --> show all users
+                \n`);
             console.log(`[${getTime()}]: User ${socket.username} joined`);
-        } else if (message.startsWith('/dm')) {
-            const parts = message.split(' ');
-            const targetName = parts[1];
-            const dmMessage = parts.slice(2).join(' ');
+            return;
+        } 
+        if (message.startsWith('/')) {
+            const command = message.split(' ')[0];
+            const handler = commands.get(command);
 
-            const targetSocket = users.get(targetName);
-
-            if (targetSocket) {
-                targetSocket.write(`[${getTime()}] (Private from <${socket.username}>): ${dmMessage}\n`);
+            if (handler) {
+                handler(message, socket, users, getTime);
             } else {
-                socket.write(`[${getTime()}] ***System: User ${targetName} not found\n`);
+                socket.write(`***System: Unknown command\n`);
             }
-        }
-        else {
-            console.log(`[${getTime()}] <${socket.username}> says: ${message}`);
-
-            users.forEach((clientSocket) => {
-                if (clientSocket !== socket) {
-                    clientSocket.write(`[${getTime()}] <${socket.username}> says: ${message}\n`);
-                }
-            });
+            return;
         }
     });
+
 
     socket.on('end', () => {
         if (socket.username) {
