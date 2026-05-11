@@ -1,0 +1,20 @@
+[
+  {
+    "id": 11,
+    "title": "Clean Code",
+    "author": "Robert Martin",
+    "year": 2008
+  },
+  {
+    "id": 12,
+    "title": "The Pragmatic Programmer",
+    "author": "Andy Hunt",
+    "year": 1999
+  },
+  {
+    "id": 13,
+    "title": "JavaScript: The Good Parts",
+    "author": "Douglas Crockford",
+    "year": 2008
+  }
+]
