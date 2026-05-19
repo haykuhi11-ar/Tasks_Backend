@@ -1,0 +1,111 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "order_date": "2024-01-10T09:30:00Z",
+    "total_amount": 1089.98,
+    "status": "shipped",
+    "items": [
+      {
+        "product_id": 1,
+        "quantity": 1,
+        "price_at_purchase": 999.99
+      },
+      {
+        "product_id": 3,
+        "quantity": 2,
+        "price_at_purchase": 49.99
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "user_id": 2,
+    "order_date": "2024-02-15T14:20:00Z",
+    "total_amount": 589.98,
+    "status": "shipped",
+    "items": [
+      {
+        "product_id": 4,
+        "quantity": 1,
+        "price_at_purchase": 499.99
+      },
+      {
+        "product_id": 2,
+        "quantity": 1,
+        "price_at_purchase": 89.99
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "user_id": 1,
+    "order_date": "2024-03-05T11:00:00Z",
+    "total_amount": 199.99,
+    "status": "pending",
+    "items": [
+      {
+        "product_id": 5,
+        "quantity": 1,
+        "price_at_purchase": 199.99
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "user_id": 3,
+    "order_date": "2024-03-18T16:45:00Z",
+    "total_amount": 179.98,
+    "status": "cancelled",
+    "items": [
+      {
+        "product_id": 2,
+        "quantity": 2,
+        "price_at_purchase": 89.99
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "user_id": 2,
+    "order_date": "2024-04-01T08:15:00Z",
+    "total_amount": 1249.97,
+    "status": "pending",
+    "items": [
+      {
+        "product_id": 1,
+        "quantity": 1,
+        "price_at_purchase": 999.99
+      },
+      {
+        "product_id": 5,
+        "quantity": 1,
+        "price_at_purchase": 199.99
+      },
+      {
+        "product_id": 3,
+        "quantity": 1,
+        "price_at_purchase": 49.99
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "user_id": 1,
+    "order_date": "5/19/2026, 10:26:41 PM",
+    "total_amount": 139.98,
+    "items": [
+      {
+        "product_id": 2,
+        "quantity": 1,
+        "price_at_purchase": 89.99
+      },
+      {
+        "product_id": 3,
+        "quantity": 1,
+        "price_at_purchase": 49.99
+      }
+    ],
+    "status": "pending"
+  }
+]

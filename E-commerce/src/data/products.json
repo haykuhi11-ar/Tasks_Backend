@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "Laptop",
+    "description": "Lightweight laptop for work and study",
+    "price": 999,
+    "stock_quantity": 15
+  },
+  {
+    "id": 2,
+    "name": "Mechanical Keyboard",
+    "description": "Compact keyboard with RGB backlight",
+    "price": 89.99,
+    "stock_quantity": 40
+  },
+  {
+    "id": 3,
+    "name": "Wireless Mouse",
+    "description": "Ergonomic mouse with long battery life",
+    "price": 49.99,
+    "stock_quantity": 60
+  }
+]

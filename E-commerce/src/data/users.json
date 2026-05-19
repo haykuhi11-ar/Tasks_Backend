@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "username": "alice123",
+    "email": "alice@gmail.com",
+    "password": "password123",
+    "role": "customer"
+  },
+  {
+    "id": 2,
+    "username": "bob_smith",
+    "email": "bob@gmail.com",
+    "password": "qwerty456",
+    "role": "customer"
+  },
+  {
+    "id": 3,
+    "username": "carol99",
+    "email": "carol@gmail.com",
+    "password": "hello789",
+    "role": "customer"
+  },
+  {
+    "id": 4,
+    "username": "admin_dave",
+    "email": "dave@gmail.com",
+    "password": "admin2024",
+    "role": "admin"
+  },
+  {
+    "id": 5,
+    "username": "admin",
+    "email": "admin@test.com",
+    "password": "123456",
+    "role": "customer"
+  }
+]
