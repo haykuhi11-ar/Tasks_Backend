@@ -1,0 +1,32 @@
+[
+  {
+    "id": 483920,
+    "username": "anna",
+    "passwordHash": "$2b$10$X7L9QvR2nK8mP1sA4dFhUeYt3Jw6BcDqZrT5uIoN9xCvBnMaLpQ2",
+    "createdAt": "2026-05-20T09:00:00.000Z"
+  },
+  {
+    "id": 194337,
+    "username": "michael",
+    "passwordHash": "$2b$10$Jf8HsK2mQ9xWcV4pLtN7YeR1uAiDzB5oCnMxPqT6sUvGhKlR3eF9",
+    "createdAt": "2026-05-20T10:15:00.000Z"
+  },
+  {
+    "id": 762581,
+    "username": "sophia",
+    "passwordHash": "$2b$10$QwErTyUiOpAsDfGhJkLzXcVbNm1234567890PoiUytReWqAsDfGh",
+    "createdAt": "2026-05-20T11:30:00.000Z"
+  },
+  {
+    "id": 395,
+    "username": "lusiya",
+    "password": "$2b$10$8VKU2WORX1uJ2C3VLozLvesO0P5jPbUC/ZoAtsT9kghLsZ8fAfVAS",
+    "createdAt": "5/21/2026, 10:27:28 PM"
+  },
+  {
+    "id": 979,
+    "username": "lui",
+    "password": "$2b$10$bRTetPGR.dBUfLFbDOyGu.nQp3pFHbr8wJK9a.y2oBbLF6QdDDrka",
+    "createdAt": "5/21/2026, 11:49:26 PM"
+  }
+]
