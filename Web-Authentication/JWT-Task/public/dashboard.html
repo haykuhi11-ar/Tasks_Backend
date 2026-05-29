@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+  <main>
+
+    <!-- TOP PANEL -->
+
+    <header>
+
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">Profile</a>
+        <a href="#">Messages</a>
+        <a href="#">Settings</a>
+        <a href="#" id="logout">Logout</a>
+      </nav>
+
+    </header>
+
+    <!-- USER INFO -->
+
+    <section>
+
+      <div>
+        <img 
+          class="avatar"
+          src="https://banner2.cleanpng.com/cb3/hes/koe/aqequ4l5d.webp" 
+          alt="avatar"
+          width="100"
+        >
+
+        <h2 id="username"></h2>
+
+        <p id="email"></p>
+
+        <p class="profile-desc">
+          Frontend developer who loves creating modern UI designs.
+        </p>
+
+      </div>
+
+<section class="section-post">
+
+    <!-- POST 1 -->
+
+    <div>
+
+        <h3>Learning Backend</h3>
+
+        <img src="https://miro.medium.com/1*c8YX-3lMdDkB9VnG_3fVrQ.png">
+
+        <div class="post">
+            <p>
+                Today I connected my frontend with Express backend
+                and finally understood how APIs work.
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- POST 2 -->
+
+    <div>
+
+        <h3>Modern UI</h3>
+
+        <img
+            src="https://static.vecteezy.com/system/resources/previews/037/206/265/non_2x/abstract-blurred-gradient-glassmorphism-background-design-wallpaper-template-with-dynamic-color-waves-and-blend-futuristic-modern-backdrop-design-for-business-presentation-ads-banner-free-vector.jpg">
+
+        <div class="post">
+            <p>
+                Glassmorphism with gradients looks very clean
+                and expensive in web design.
+            </p>
+        </div>
+
+
+    </div>
+
+    <!-- POST 3 -->
+
+    <div>
+
+        <h3>React Practice</h3>
+
+        <img src="https://miro.medium.com/v2/resize:fit:1200/1*V0LNDyGRNwc4vyo5xrPHnQ.jpeg">
+
+        <div class="post">
+            <p>
+                Worked with useEffect and Axios today.
+                Practice really helps understand React better.
+            </p>
+        </div>
+
+
+    </div>
+
+    <!-- POST 4 -->
+
+    <div>
+
+        <h3>Night Coding</h3>
+
+        <img
+            src="https://media.licdn.com/dms/image/v2/D4D12AQEguG9ZsP_v6A/article-cover_image-shrink_720_1280/B4DZh_0jBqG8AI-/0/1754491140454?e=2147483647&v=beta&t=9d4C4TMsB9pgCICMswvF_g67_4HgLiEpMg3lI29DNWg">
+
+        <div class="post">
+            <p>
+                Coding at night feels calmer and helps me focus more.
+            </p>
+        </div>
+
+
+    </div>
+
+    <!-- POST 5 -->
+
+    <div>
+
+        <h3>New Goals</h3>
+
+        <img src="https://lh7-rt.googleusercontent.com/docsz/AD_4nXfpH5jkmDQ7HelQcaPh5lMKwfW2Bx6I0hDhlg3mrNwXlLXO1lmwofaYS_1a8211DPJqhb-z5cLtDYfFkjA1EUKfNOEfTJCSWUKXSIY4pams0g4xGBWrqYMLC_yy1izmQgj1SwM6vg?key=8Icro23PLHSLRmHd-kIQoO0c">
+        <div>
+            <p>
+                Want to improve both frontend and backend skills
+                to become a fullstack developer.
+            </p>
+        </div>
+
+
+    </div>
+
+</section>
+
+</main>
+
+<script>
+        const token = sessionStorage.getItem("token");
+
+        async function getUser() {
+            try {
+                const response = await fetch("http://localhost:3001/me", {
+                    headers: {Authorization: `Bearer ${token}`},
+                });
+
+                const user = await response.json();
+                document.getElementById("username").textContent = user.username;
+                document.getElementById("email").textContent = user.email;
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        getUser();
+
+        document.getElementById("logout").addEventListener("click", () => {
+            sessionStorage.removeItem("token");
+            window.location.href = "./login.html";
+        }); 
+        
+    </script>
+
+
+</body>
+
+</html>
