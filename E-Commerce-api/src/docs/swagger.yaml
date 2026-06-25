@@ -1,0 +1,342 @@
+openapi: 3.0.3
+
+info:
+  title: E-Commerce API
+  version: 1.0.0
+  description: |
+    REST API for an E-Commerce platform including authentication, products,
+    categories, cart, orders, and reviews.
+
+servers:
+  - url: http://localhost:3000/api-docs
+    description: Local development server
+
+# ================= SECURITY =================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # ================= GLOBAL RESPONSES =================
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  # ================= SCHEMAS =================
+  schemas:
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role:
+          type: string
+          enum: [user, admin]
+
+    AuthLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+
+    AuthRegister:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 2 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+
+    Product:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        price: { type: number, minimum: 0 }
+        stock: { type: integer, minimum: 0 }
+        imageUrl: { type: string }
+
+    ProductCreate:
+      type: object
+      required: [name, price]
+      properties:
+        name: { type: string, minLength: 2 }
+        price: { type: number, minimum: 0 }
+        description: { type: string }
+        stock: { type: integer, default: 0 }
+
+    Category:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+
+    CartItem:
+      type: object
+      properties:
+        id: { type: integer }
+        product_id: { type: integer }
+        quantity: { type: integer }
+
+    Order:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+
+    Review:
+      type: object
+      properties:
+        id: { type: integer }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        statusCode:
+          type: integer
+
+# ================= GLOBAL AUTH =================
+security:
+  - BearerAuth: []
+
+# ================= TAGS =================
+tags:
+  - name: Auth
+  - name: Products
+  - name: Categories
+  - name: Cart
+  - name: Orders
+  - name: Reviews
+
+# ================= PATHS =================
+paths:
+
+  # ================= AUTH =================
+  /auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRegister'
+      responses:
+        201:
+          description: User created
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLogin'
+      responses:
+        200:
+          description: JWT token returned
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      responses:
+        200:
+          description: User profile
+
+  # ================= PRODUCTS =================
+  /products:
+    get:
+      tags: [Products]
+      security: []
+      summary: Get all products with filters + pagination
+
+      parameters:
+        - name: category
+          in: query
+          schema: { type: string }
+
+        - name: minPrice
+          in: query
+          schema: { type: number }
+
+        - name: maxPrice
+          in: query
+          schema: { type: number }
+
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+
+      responses:
+        200:
+          description: Products list
+
+    post:
+      tags: [Products]
+      summary: Create product (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+      responses:
+        201:
+          description: Product created
+
+  /products/{id}:
+    get:
+      tags: [Products]
+      security: []
+      summary: Get product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: Product details
+
+    put:
+      tags: [Products]
+      summary: Update product (Admin only)
+
+    delete:
+      tags: [Products]
+      summary: Delete product (Admin only)
+
+  # ================= CATEGORIES =================
+  /categories:
+    get:
+      tags: [Categories]
+      security: []
+      summary: Get all categories
+      responses:
+        200:
+          description: Categories list
+
+    post:
+      tags: [Categories]
+      summary: Create category (Admin only)
+
+  /categories/{id}:
+    delete:
+      tags: [Categories]
+      summary: Delete category (Admin only)
+
+  # ================= CART =================
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Get user cart
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add product to cart
+
+  /cart/items/{id}:
+    put:
+      tags: [Cart]
+      summary: Update cart item
+
+    delete:
+      tags: [Cart]
+      summary: Remove cart item
+
+  # ================= ORDERS =================
+  /orders/checkout:
+    post:
+      tags: [Orders]
+      summary: Checkout cart → create order
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Get user orders
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order by id
+
+  /orders/{id}/status:
+    patch:
+      tags: [Orders]
+      summary: Update order status (Admin only)
+
+  # ================= REVIEWS =================
+  /products/{id}/reviews:
+    get:
+      tags: [Reviews]
+      summary: Get product reviews
+
+    post:
+      tags: [Reviews]
+      summary: Create review (only if purchased)
+
+  /reviews/{id}:
+    delete:
+      tags: [Reviews]
+      summary: Delete review (Owner/Admin only)
