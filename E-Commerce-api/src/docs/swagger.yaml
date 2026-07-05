@@ -6,10 +6,18 @@ info:
   description: |
     REST API for an E-Commerce platform including authentication, products,
     categories, cart, orders, and reviews.
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
   - url: http://localhost:3000/api-docs
     description: Local development server
+  - url: https://api.example.com/v1
+    description: Production server
 
 # ================= SECURITY =================
 components:
@@ -18,36 +26,76 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: >
+        JWT access token obtained from /auth/login or /auth/register.
+        Pass as "Authorization: Bearer <token>".
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: Numeric ID of the resource
+      schema:
+        type: integer
+        example: 1
 
   # ================= GLOBAL RESPONSES =================
   responses:
     BadRequest:
-      description: Bad Request
+      description: Bad Request — validation error in the request payload or parameters
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Validation failed: 'price' must be a positive number"
+            statusCode: 400
 
     Unauthorized:
-      description: Unauthorized
+      description: Unauthorized — missing, invalid, or expired JWT token
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Unauthorized: invalid or missing token"
+            statusCode: 401
 
     Forbidden:
-      description: Forbidden
+      description: Forbidden — authenticated but not allowed to perform this action
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Forbidden: admin privileges required"
+            statusCode: 403
 
     NotFound:
-      description: Not Found
+      description: Not Found — the requested resource does not exist
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Resource not found"
+            statusCode: 404
+
+    Conflict:
+      description: Conflict — resource already exists or state conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Email is already registered"
+            statusCode: 409
 
     InternalError:
       description: Internal Server Error
@@ -55,6 +103,10 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "Internal server error"
+            statusCode: 500
 
   # ================= SCHEMAS =================
   schemas:
@@ -62,76 +114,204 @@ components:
     User:
       type: object
       properties:
-        id: { type: integer }
-        name: { type: string }
-        email: { type: string }
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "John Doe" }
+        email: { type: string, format: email, example: "john.doe@example.com" }
         role:
           type: string
           enum: [user, admin]
+          example: user
+        createdAt: { type: string, format: date-time, example: "2026-01-15T10:30:00Z" }
 
     AuthLogin:
       type: object
       required: [email, password]
       properties:
-        email: { type: string, format: email }
-        password: { type: string, minLength: 6 }
+        email: { type: string, format: email, example: "john.doe@example.com" }
+        password: { type: string, minLength: 6, format: password, example: "SecurePass123" }
 
     AuthRegister:
       type: object
       required: [name, email, password]
       properties:
-        name: { type: string, minLength: 2 }
-        email: { type: string, format: email }
-        password: { type: string, minLength: 6 }
+        name: { type: string, minLength: 2, example: "John Doe" }
+        email: { type: string, format: email, example: "john.doe@example.com" }
+        password: { type: string, minLength: 6, format: password, example: "SecurePass123" }
+
+    AuthToken:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        user:
+          $ref: '#/components/schemas/User'
 
     Product:
       type: object
       properties:
-        id: { type: integer }
-        name: { type: string }
-        description: { type: string }
-        price: { type: number, minimum: 0 }
-        stock: { type: integer, minimum: 0 }
-        imageUrl: { type: string }
+        id: { type: integer, example: 101 }
+        name: { type: string, example: "Wireless Mouse" }
+        description: { type: string, example: "Ergonomic wireless mouse with USB receiver" }
+        price: { type: number, minimum: 0, example: 29.99 }
+        stock: { type: integer, minimum: 0, example: 150 }
+        imageUrl: { type: string, example: "https://cdn.example.com/products/101.jpg" }
+        categoryId: { type: integer, example: 3 }
+        createdAt: { type: string, format: date-time, example: "2026-02-01T09:00:00Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-03-10T14:20:00Z" }
 
     ProductCreate:
       type: object
       required: [name, price]
       properties:
-        name: { type: string, minLength: 2 }
-        price: { type: number, minimum: 0 }
-        description: { type: string }
-        stock: { type: integer, default: 0 }
+        name: { type: string, minLength: 2, example: "Wireless Mouse" }
+        price: { type: number, minimum: 0, example: 29.99 }
+        description: { type: string, example: "Ergonomic wireless mouse with USB receiver" }
+        stock: { type: integer, default: 0, example: 150 }
+        categoryId: { type: integer, example: 3 }
+        imageUrl: { type: string, example: "https://cdn.example.com/products/101.jpg" }
+
+    ProductUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, example: "Wireless Mouse Pro" }
+        price: { type: number, minimum: 0, example: 34.99 }
+        description: { type: string, example: "Updated description" }
+        stock: { type: integer, example: 200 }
+        categoryId: { type: integer, example: 3 }
+        imageUrl: { type: string, example: "https://cdn.example.com/products/101.jpg" }
+
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer, example: 57 }
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 10 }
+        totalPages: { type: integer, example: 6 }
+
+    ProductListResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
 
     Category:
       type: object
       properties:
-        id: { type: integer }
-        name: { type: string }
-        description: { type: string }
+        id: { type: integer, example: 3 }
+        name: { type: string, example: "Electronics" }
+        description: { type: string, example: "Electronic gadgets and accessories" }
+
+    CategoryCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 2, example: "Electronics" }
+        description: { type: string, example: "Electronic gadgets and accessories" }
 
     CartItem:
       type: object
       properties:
-        id: { type: integer }
-        product_id: { type: integer }
-        quantity: { type: integer }
+        id: { type: integer, example: 55 }
+        product_id: { type: integer, example: 101 }
+        product:
+          $ref: '#/components/schemas/Product'
+        quantity: { type: integer, minimum: 1, example: 2 }
+        subtotal: { type: number, example: 59.98 }
+
+    CartItemCreate:
+      type: object
+      required: [product_id, quantity]
+      properties:
+        product_id: { type: integer, example: 101 }
+        quantity: { type: integer, minimum: 1, example: 2 }
+
+    CartItemUpdate:
+      type: object
+      required: [quantity]
+      properties:
+        quantity: { type: integer, minimum: 1, example: 3 }
+
+    Cart:
+      type: object
+      properties:
+        id: { type: integer, example: 12 }
+        user_id: { type: integer, example: 1 }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        totalItems: { type: integer, example: 3 }
+        totalPrice: { type: number, example: 89.97 }
+
+    OrderItem:
+      type: object
+      properties:
+        id: { type: integer, example: 501 }
+        product_id: { type: integer, example: 101 }
+        product_name: { type: string, example: "Wireless Mouse" }
+        quantity: { type: integer, example: 2 }
+        price: { type: number, example: 29.99 }
+        subtotal: { type: number, example: 59.98 }
 
     Order:
       type: object
       properties:
-        id: { type: integer }
-        user_id: { type: integer }
+        id: { type: integer, example: 77 }
+        user_id: { type: integer, example: 1 }
         status:
           type: string
           enum: [pending, completed, cancelled]
+          example: pending
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        totalPrice: { type: number, example: 89.97 }
+        shippingAddress: { type: string, example: "123 Main St, Springfield, IL" }
+        createdAt: { type: string, format: date-time, example: "2026-04-05T12:00:00Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-04-06T08:30:00Z" }
+
+    OrderCheckout:
+      type: object
+      required: [shippingAddress]
+      properties:
+        shippingAddress: { type: string, example: "123 Main St, Springfield, IL" }
+        paymentMethod:
+          type: string
+          enum: [card, cash_on_delivery, paypal]
+          example: card
+
+    OrderStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+          example: completed
 
     Review:
       type: object
       properties:
-        id: { type: integer }
-        rating: { type: integer, minimum: 1, maximum: 5 }
-        comment: { type: string }
+        id: { type: integer, example: 301 }
+        product_id: { type: integer, example: 101 }
+        user_id: { type: integer, example: 1 }
+        userName: { type: string, example: "John Doe" }
+        rating: { type: integer, minimum: 1, maximum: 5, example: 5 }
+        comment: { type: string, example: "Great product, works perfectly!" }
+        createdAt: { type: string, format: date-time, example: "2026-04-10T16:45:00Z" }
+
+    ReviewCreate:
+      type: object
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5, example: 5 }
+        comment: { type: string, example: "Great product, works perfectly!" }
 
     Error:
       type: object
@@ -141,8 +321,10 @@ components:
           example: false
         error:
           type: string
+          example: "Something went wrong"
         statusCode:
           type: integer
+          example: 400
 
 # ================= GLOBAL AUTH =================
 security:
@@ -151,11 +333,17 @@ security:
 # ================= TAGS =================
 tags:
   - name: Auth
+    description: Registration, login, and current-user operations
   - name: Products
+    description: Browsing and management of products
   - name: Categories
+    description: Product category management
   - name: Cart
+    description: Shopping cart operations
   - name: Orders
+    description: Checkout and order management
   - name: Reviews
+    description: Product review operations
 
 # ================= PATHS =================
 paths:
@@ -166,6 +354,7 @@ paths:
       tags: [Auth]
       security: []
       summary: Register new user
+      description: Creates a new user account with the "user" role.
       requestBody:
         required: true
         content:
@@ -173,14 +362,25 @@ paths:
             schema:
               $ref: '#/components/schemas/AuthRegister'
       responses:
-        201:
-          description: User created
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /auth/login:
     post:
       tags: [Auth]
       security: []
       summary: Login user
+      description: Authenticates a user and returns a JWT access token.
       requestBody:
         required: true
         content:
@@ -188,16 +388,39 @@ paths:
             schema:
               $ref: '#/components/schemas/AuthLogin'
       responses:
-        200:
+        '200':
           description: JWT token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /auth/me:
     get:
       tags: [Auth]
       summary: Get current user
+      description: Returns the profile of the currently authenticated user.
       responses:
-        200:
+        '200':
           description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ================= PRODUCTS =================
   /products:
@@ -205,35 +428,49 @@ paths:
       tags: [Products]
       security: []
       summary: Get all products with filters + pagination
-
+      description: Returns a paginated list of products, optionally filtered by category and price range.
       parameters:
         - name: category
           in: query
-          schema: { type: string }
+          description: Filter by category name
+          schema: { type: string, example: "Electronics" }
 
         - name: minPrice
           in: query
-          schema: { type: number }
+          description: Minimum price filter
+          schema: { type: number, example: 10 }
 
         - name: maxPrice
           in: query
-          schema: { type: number }
+          description: Maximum price filter
+          schema: { type: number, example: 100 }
 
         - name: page
           in: query
-          schema: { type: integer, default: 1 }
+          description: Page number (1-based)
+          schema: { type: integer, default: 1, minimum: 1, example: 1 }
 
         - name: limit
           in: query
-          schema: { type: integer, default: 10 }
+          description: Number of items per page
+          schema: { type: integer, default: 10, minimum: 1, maximum: 100, example: 10 }
 
       responses:
-        200:
+        '200':
           description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     post:
       tags: [Products]
       summary: Create product (Admin only)
+      description: Creates a new product. Requires admin role.
       requestBody:
         required: true
         content:
@@ -241,8 +478,24 @@ paths:
             schema:
               $ref: '#/components/schemas/ProductCreate'
       responses:
-        201:
+        '201':
           description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /products/{id}:
     get:
@@ -250,21 +503,81 @@ paths:
       security: []
       summary: Get product by ID
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
+        - $ref: '#/components/parameters/IdParam'
       responses:
-        200:
+        '200':
           description: Product details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     put:
       tags: [Products]
       summary: Update product (Admin only)
+      description: Updates an existing product. Requires admin role.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     delete:
       tags: [Products]
       summary: Delete product (Admin only)
+      description: Deletes a product by ID. Requires admin role.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Product deleted successfully" }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ================= CATEGORIES =================
   /categories:
@@ -273,70 +586,416 @@ paths:
       security: []
       summary: Get all categories
       responses:
-        200:
+        '200':
           description: Categories list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     post:
       tags: [Categories]
       summary: Create category (Admin only)
+      description: Creates a new product category. Requires admin role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /categories/{id}:
     delete:
       tags: [Categories]
       summary: Delete category (Admin only)
+      description: Deletes a category by ID. Requires admin role.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Category deleted successfully" }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ================= CART =================
   /cart:
     get:
       tags: [Cart]
       summary: Get user cart
+      description: Returns the current authenticated user's shopping cart with items and totals.
+      responses:
+        '200':
+          description: User's cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /cart/items:
     post:
       tags: [Cart]
       summary: Add product to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemCreate'
+      responses:
+        '201':
+          description: Item added to cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /cart/items/{id}:
     put:
       tags: [Cart]
       summary: Update cart item
+      description: Updates the quantity of a cart item by its ID.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemUpdate'
+      responses:
+        '200':
+          description: Cart item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/CartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     delete:
       tags: [Cart]
       summary: Remove cart item
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Cart item removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Item removed from cart" }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ================= ORDERS =================
   /orders/checkout:
     post:
       tags: [Orders]
       summary: Checkout cart → create order
+      description: Converts the current user's cart into a new order and clears the cart.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCheckout'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /orders:
     get:
       tags: [Orders]
       summary: Get user orders
+      description: Returns a paginated list of the current authenticated user's orders.
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10, example: 10 }
+        - name: status
+          in: query
+          description: Filter by order status
+          schema:
+            type: string
+            enum: [pending, completed, cancelled]
+            example: pending
+      responses:
+        '200':
+          description: List of user orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /orders/{id}:
     get:
       tags: [Orders]
       summary: Get order by id
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /orders/{id}/status:
     patch:
       tags: [Orders]
       summary: Update order status (Admin only)
+      description: Updates the status of an order. Requires admin role.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdate'
+      responses:
+        '200':
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ================= REVIEWS =================
   /products/{id}/reviews:
     get:
       tags: [Reviews]
+      security: []
       summary: Get product reviews
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - name: page
+          in: query
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10, example: 10 }
+      responses:
+        '200':
+          description: List of product reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     post:
       tags: [Reviews]
       summary: Create review (only if purchased)
+      description: Adds a review for a product. The user must have purchased the product.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden — user has not purchased this product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error: "You must purchase this product before reviewing it"
+                statusCode: 403
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /reviews/{id}:
     delete:
       tags: [Reviews]
       summary: Delete review (Owner/Admin only)
+      description: Deletes a review. Only the review's author or an admin may delete it.
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Review deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: "Review deleted successfully" }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
