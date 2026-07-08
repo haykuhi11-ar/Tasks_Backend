@@ -82,11 +82,10 @@ const eventSchema = new mongoose.Schema(
 // Supports "events in category X, sorted/filtered by date".
 eventSchema.index({ category: 1, startTime: 1 });
 
-eventSchema.pre('validate', function validateTimeRange(next) {
+eventSchema.pre('validate', async function validateTimeRange() {
     if (this.startTime && this.endTime && this.endTime <= this.startTime) {
-        return next(new Error('endTime must be after startTime'));
+        throw new Error('endTime must be after startTime');
     }
-    next();
 });
 
 module.exports = mongoose.model('Event', eventSchema);

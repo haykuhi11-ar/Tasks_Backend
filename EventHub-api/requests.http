@@ -1,0 +1,245 @@
+### EventHub API — example requests
+### Use with VS Code "REST Client" or "Thunder Client" extension.
+### Run requests top to bottom; copy tokens/ids from responses into the
+### variables below as you go.
+
+@baseUrl = http://localhost:4000
+@accessToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTRkZDdhM2IwNGM3MjcyNDY3ZDZkZWQiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzgzNDg2ODgwLCJleHAiOjE3ODM0ODc3ODB9.Ggjf0qPO4c1TVkbouLHvJEuV3220xPWFoSQvtICAFs8
+@refreshToken =8448fc3747c619162e42cb0aa6f65000940cc9046c0df9d8f6f10326a1bf6e47a83566187db68ba678c67fe67645d8ee
+@eventId =6a4dd77eb04c7272467d6dec
+@reviewId = PASTE_REVIEW_ID_HERE
+
+
+### ============================================================
+### AUTH
+### ============================================================
+
+### Register an organizer
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice Organizer",
+  "email": "alice@example.com",
+  "password": "supersecret1",
+  "role": "organizer"
+}
+
+
+### Register a member
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Bob Member",
+  "email": "bob@example.com",
+  "password": "supersecret1",
+  "role": "member"
+}
+
+
+### Login (copy accessToken/refreshToken from the response above into the variables)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "password": "supersecret1"
+}
+
+
+### Get own profile (requires accessToken)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{accessToken}}
+
+
+### Refresh tokens (rotates refreshToken — copy the NEW one from the response)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+
+### Logout (revokes refreshToken server-side)
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+
+### ============================================================
+### EVENTS
+### ============================================================
+
+### List events (public, no auth) — filters + pagination
+GET {{baseUrl}}/events?category=tech&page=1&limit=10
+
+
+### List events by date range
+GET {{baseUrl}}/events?dateFrom=2026-08-01&dateTo=2026-12-31
+
+
+### Create event (organizer only — use an organizer's accessToken)
+POST {{baseUrl}}/events
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Backend Meetup",
+  "description": "A meetup about REST APIs, MongoDB, and JWT auth flows.",
+  "category": "tech",
+  "location": "Yerevan, Armenia",
+  "startTime": "2026-09-01T18:00:00.000Z",
+  "endTime": "2026-09-01T21:00:00.000Z",
+  "capacity": 2
+}
+
+
+### Get event by id (public)
+GET {{baseUrl}}/events/{{eventId}}
+
+
+### Update event (organizer, must be the owner)
+PATCH {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "capacity": 5,
+  "location": "Yerevan, Armenia — new venue"
+}
+
+
+### Add an agenda item (organizer, must be the owner)
+POST {{baseUrl}}/events/{{eventId}}/agenda
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Intro to JWT rotation",
+  "startTime": "2026-09-01T18:00:00.000Z",
+  "endTime": "2026-09-01T18:30:00.000Z",
+  "speaker": "Alice Organizer"
+}
+
+
+### Delete event (organizer, must be the owner)
+DELETE {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{accessToken}}
+
+
+### ============================================================
+### ATTENDANCE — use a MEMBER's accessToken here
+### ============================================================
+
+### Join an event
+POST {{baseUrl}}/events/{{eventId}}/join
+Authorization: Bearer {{accessToken}}
+
+
+### Join again with the same user -> expect 409 ALREADY_JOINED
+POST {{baseUrl}}/events/{{eventId}}/join
+Authorization: Bearer {{accessToken}}
+
+
+### Leave an event
+DELETE {{baseUrl}}/events/{{eventId}}/join
+Authorization: Bearer {{accessToken}}
+
+
+### List attendees (public)
+GET {{baseUrl}}/events/{{eventId}}/attendees?page=1&limit=20
+
+
+### ============================================================
+### REVIEWS
+### ============================================================
+
+### Create a review — only works if the user attended AND the event has ended.
+### To test the happy path, create an event with startTime/endTime in the past
+### (organizers can't normally do this via the create-event validation ordering
+### assumptions, so seed one directly via mongosh if needed for this test).
+POST {{baseUrl}}/events/{{eventId}}/reviews
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Great talks, well organized."
+}
+
+
+### Try reviewing the same event again -> expect 409 REVIEW_ALREADY_EXISTS
+POST {{baseUrl}}/events/{{eventId}}/reviews
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "comment": "Trying to review twice."
+}
+
+
+### List reviews for an event (public) — includes average rating summary
+GET {{baseUrl}}/events/{{eventId}}/reviews?page=1&limit=10
+
+
+### Delete a review (only the review's own author)
+DELETE {{baseUrl}}/reviews/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+
+
+### ============================================================
+### ERROR CASES WORTH DEMONSTRATING
+### ============================================================
+
+### Missing access token -> 401 TOKEN_MISSING
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "title": "Should fail",
+  "description": "No token provided.",
+  "category": "tech",
+  "location": "Nowhere",
+  "startTime": "2026-09-01T18:00:00.000Z",
+  "endTime": "2026-09-01T21:00:00.000Z",
+  "capacity": 10
+}
+
+
+### Member trying to create an event -> 403 ROLE_NOT_ALLOWED
+### (use a member's accessToken here)
+POST {{baseUrl}}/events
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Should fail",
+  "description": "Members cannot create events.",
+  "category": "tech",
+  "location": "Nowhere",
+  "startTime": "2026-09-01T18:00:00.000Z",
+  "endTime": "2026-09-01T21:00:00.000Z",
+  "capacity": 10
+}
+
+
+### Invalid body (endTime before startTime) -> 400 VALIDATION_ERROR
+POST {{baseUrl}}/events
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Bad time range",
+  "description": "endTime is before startTime.",
+  "category": "tech",
+  "location": "Nowhere",
+  "startTime": "2026-09-01T21:00:00.000Z",
+  "endTime": "2026-09-01T18:00:00.000Z",
+  "capacity": 10
+}

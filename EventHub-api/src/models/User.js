@@ -62,18 +62,10 @@ userSchema.pre('save', async function hashPasswordBeforeSave(next) {
     const user = this;
 
     if (!user.isModified('passwordHash')) {
-        return next();
+        return;
     }
 
-    try {
-        const salt = env.bcryptSaltRounds;
-        user.passwordHash = await bcrypt.hash(user.passwordHash, salt);
-
-        next();
-
-    } catch (error) {
-        next(error);
-    }
+    this.passwordHash = await bcrypt.hash(this.passwordHash, env.bcryptSaltRounds);
 });
 
 module.exports = mongoose.model('User', userSchema);

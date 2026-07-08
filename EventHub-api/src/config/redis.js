@@ -1,9 +1,9 @@
-const redis = require('ioredis');
+const Redis = require('ioredis');
 const env = require('./env');
 
-const redis = new redis.Redis(env.redisUrl, {
-    maxRetriesPerRequest: 3,
-    lazyConnect: false
+const redis = new Redis(env.redisUrl, {
+    maxRetriesPerRequest: null,
+    tls: {},
 });
 
 redis.on('connect', () => console.log('[redis] connected'));

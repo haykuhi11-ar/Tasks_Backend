@@ -1,8 +1,9 @@
 const { BadRequestError, UnauthorizedError } = require("../errors");
 const ERROR_CODES = require("../errors/error.codes");
 const User = require('../models/User');
+const RefreshToken = require('../models/RefreshToken')
 const { comparePassword } = require("../utils/password");
-const hashToken = require('../utils/tokens');
+const utilsTokens = require('../utils/tokens');
 const { issueTokenPair } = require("./refreshToken.service");
 const refreshTokenCache = require("./refreshTokenCache.service");
 
@@ -39,7 +40,7 @@ async function login({ email, password }) {
 }
 
 async function logout(rawToken) {
-    const tokenHash = hashToken(rawToken);
+    const tokenHash = utilsTokens.hashToken(rawToken);
 
     await RefreshToken.findOneAndUpdate(
         { tokenHash, revokedAt: null },

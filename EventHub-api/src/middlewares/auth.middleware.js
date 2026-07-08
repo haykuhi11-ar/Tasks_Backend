@@ -1,5 +1,5 @@
 const ERROR_CODES = require("../errors/error.codes");
-const UnauthorizedError = require("../errors");
+const { UnauthorizedError } = require("../errors");
 const { verifyAccessToken } = require("../utils/tokens");
 
 
